@@ -20,7 +20,7 @@ export function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      text: "Hello! I'm your Utility Customer Support assistant. I can help you with electricity, gas, water services, billing questions, and emergency reports. How can I assist you today?",
+      text: "Hello! I'm your Utility Customer Support assistant. How can I assist you today?",
       isBot: true,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
@@ -134,7 +134,7 @@ export function Chatbot() {
     if (window.confirm("Are you sure you want to clear the chat history?")) {
       setMessages([{
         id: "welcome",
-        text: "Hello! I'm your Utility Customer Support assistant. I can help you with electricity, gas, water services, billing questions, and emergency reports. How can I assist you today?",
+        text: "Hello! I'm your Utility Customer Support assistant. How can I assist you today?",
         isBot: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
@@ -160,9 +160,9 @@ export function Chatbot() {
       <Button
         onClick={toggleChat}
         className={cn(
-          "fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-50",
+          "fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-1000 z-50",
           "bg-blue-600 hover:bg-blue-700 text-white",
-          !isOpen && "animate-pulse"
+          //!isOpen && "animate-pulse"
         )}
         size="icon"
       >
