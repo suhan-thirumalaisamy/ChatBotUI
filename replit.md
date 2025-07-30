@@ -1,8 +1,8 @@
-# Chat Application with AWS Lambda Integration
+# Utility Customer Support Bot with AWS Lambda Integration
 
 ## Overview
 
-This is a full-stack chat application built with React and Express that integrates with AWS Lambda functions for AI-powered conversations. The application features a modern UI with a floating chatbot component and uses PostgreSQL with Drizzle ORM for data persistence.
+This is a full-stack utility customer support application built with React and Express that integrates with AWS Lambda functions for AI-powered customer service conversations. The application features a modern UI with a floating chatbot component specifically designed for utility customer support (electricity, gas, water, and emergency services) and uses PostgreSQL with Drizzle ORM for data persistence.
 
 ## User Preferences
 
