@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { MessageCircle, X, Send, Trash2, Bot, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { invokeBedrockAgent } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface Message {
@@ -26,7 +26,7 @@ export function Chatbot() {
     }
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [sessionId] = useState(`session_${Date.now()}`);
+  const [sessionId, setSessionId] = useState(`session_${Date.now()}`);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -48,16 +48,13 @@ export function Chatbot() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await apiRequest("POST", "/api/chat", {
-        message,
-        sessionId
-      });
-      return response.json();
+      const response = await invokeBedrockAgent(message,sessionId);
+      return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       const botMessage: Message = {
         id: `bot_${Date.now()}`,
-        text: data.response,
+        text: data.agentResponse,
         isBot: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
@@ -131,14 +128,13 @@ export function Chatbot() {
   };
 
   const handleClearChat = () => {
-    if (window.confirm("Are you sure you want to clear the chat history?")) {
       setMessages([{
         id: "welcome",
         text: "Hello! I'm your Utility Customer Support assistant. How can I assist you today?",
         isBot: true,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
-    }
+      setSessionId(`session_${Date.now()}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

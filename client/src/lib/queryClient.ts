@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import axios from "axios";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -7,20 +8,26 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
-): Promise<Response> {
-  const res = await fetch(url, {
-    method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+export async function invokeBedrockAgent(
+ message: String = "",
+ sessionId: String = "demo-session-001"
+) {
+  const response = await axios.post(
+      'https://qni489novc.execute-api.us-east-1.amazonaws.com/prod/invokeBedrockAgent',
+      {
+        sessionId,
+        input: message
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    console.log(response.data);
 
-  await throwIfResNotOk(res);
-  return res;
+  // await throwIfResNotOk(response);
+  return response;
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
