@@ -7,8 +7,6 @@ import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-import { authService } from "@/lib/auth";
 
 interface Message {
   id: string;
@@ -33,7 +31,6 @@ export function Chatbot() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,11 +48,10 @@ export function Chatbot() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const headers = isAuthenticated ? authService.getAuthHeaders() : {};
       const response = await apiRequest("POST", "/api/chat", {
         message,
         sessionId
-      }, headers);
+      });
       return response.json();
     },
     onSuccess: (data) => {

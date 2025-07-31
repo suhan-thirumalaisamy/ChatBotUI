@@ -8,18 +8,6 @@ This is a full-stack utility customer support application built with React and E
 
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes
-
-**January 31, 2025**
-- ✓ Added AWS Cognito authentication integration
-- ✓ Created comprehensive auth system with sign up, sign in, email verification, password reset
-- ✓ Added authentication UI components with modal dialogs
-- ✓ Updated database schema to support Cognito users (cognitoSub, email, name)
-- ✓ Implemented JWT token management for API requests
-- ✓ Added authentication header and user bar to home page
-- ✓ Integrated auth tokens with chatbot API calls
-- ✓ Created user context and auth service for frontend state management
-
 ## System Architecture
 
 The application follows a monorepo structure with clear separation between frontend and backend concerns:
@@ -78,15 +66,8 @@ The application follows a monorepo structure with clear separation between front
 - **Development**: vite, typescript, tsx for development server
 
 ### AWS Integration
-- **Lambda**: Requires `LAMBDA_ENDPOINT` environment variable for Lambda function URL
-- **Lambda Authentication**: Optional `LAMBDA_API_KEY` for authentication
-- **Cognito Authentication**: Requires the following environment variables:
-  - `AWS_REGION` (e.g., 'us-east-1')
-  - `AWS_ACCESS_KEY_ID` (AWS access key)
-  - `AWS_SECRET_ACCESS_KEY` (AWS secret key)
-  - `COGNITO_CLIENT_ID` (Cognito app client ID)
-  - `COGNITO_USER_POOL_ID` (Cognito user pool ID)
-  - `JWT_SECRET` (Secret for signing JWT tokens)
+- Requires `LAMBDA_ENDPOINT` environment variable for Lambda function URL
+- Optional `LAMBDA_API_KEY` for authentication
 - Support for AWS credential-based authentication
 
 ### Database

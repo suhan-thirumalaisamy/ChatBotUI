@@ -1,66 +1,9 @@
-import { useState } from "react";
 import { Chatbot } from "@/components/chatbot";
-import { AuthModal } from "@/components/auth-modal";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
-import { Zap, Droplets, Flame, HelpCircle, Phone, Clock, User, LogOut } from "lucide-react";
+import { Zap, Droplets, Flame, HelpCircle, Phone, Clock } from "lucide-react";
 
 export default function Home() {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const { user, isAuthenticated, signOut, isLoading } = useAuth();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      console.error("Sign out error:", error);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header with Authentication */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Zap className="h-6 w-6 text-blue-600" />
-              <span className="text-lg font-semibold text-slate-800">Utility Support</span>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {isAuthenticated && user ? (
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <User className="h-4 w-4 text-slate-600" />
-                    <span className="text-sm text-slate-700">Welcome, {user.name || user.email}</span>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleSignOut}
-                    disabled={isLoading}
-                    className="text-slate-600 hover:text-slate-800"
-                  >
-                    <LogOut className="h-4 w-4 mr-1" />
-                    Sign Out
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => setIsAuthModalOpen(true)}
-                  disabled={isLoading}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <User className="h-4 w-4 mr-1" />
-                  Sign In
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content Area */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -153,12 +96,6 @@ export default function Home() {
 
       {/* Chatbot Component */}
       <Chatbot />
-
-      {/* Authentication Modal */}
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
-      />
     </div>
   );
 }
