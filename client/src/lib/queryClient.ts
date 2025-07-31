@@ -13,7 +13,7 @@ export async function invokeBedrockAgent(
  sessionId: String = "demo-session-001"
 ) {
   const response = await axios.post(
-      import.meta.env.BASE_URL,
+      import.meta.env.BASE_API_URL,
       {
         sessionId,
         input: message
