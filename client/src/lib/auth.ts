@@ -6,9 +6,9 @@ import { getCurrentUser, signIn, signUp, signOut, confirmSignUp, resendSignUpCod
 const amplifyConfig = {
   Auth: {
     Cognito: {
-      userPoolId: process.env.VITE_COGNITO_USER_POOL_ID || 'your-user-pool-id',
-      userPoolClientId: process.env.VITE_COGNITO_USER_POOL_CLIENT_ID || 'your-client-id',
-      region: process.env.VITE_AWS_REGION || 'us-east-1',
+      userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'your-user-pool-id',
+      userPoolClientId: import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID || 'your-client-id',
+      region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
       signUpVerificationMethod: 'code' as const,
     }
   }
