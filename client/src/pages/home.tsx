@@ -1,20 +1,34 @@
 import { Chatbot } from "@/components/chatbot";
+import { UserMenu } from "@/components/UserMenu";
 import { Zap, Droplets, Flame, HelpCircle, Phone, Clock } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Header with User Menu */}
+      <header className="bg-white border-b border-slate-200">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Zap className="h-4 w-4 text-blue-600" />
+            </div>
+            <h1 className="text-xl font-semibold text-slate-800">Utility Support</h1>
+          </div>
+          <UserMenu />
+        </div>
+      </header>
+
       {/* Main Content Area */}
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <header className="text-center mb-12">
+          <div className="text-center mb-12">
             <h1 className="text-4xl font-semibold text-slate-800 mb-4">
               Utility Customer Support Bot
             </h1>
             <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
               Get instant help with your utility services. Our AI-powered support bot can assist you with electricity, gas, water, and waste management inquiries 24/7. Click the chat button in the bottom right corner to get started.
             </p>
-          </header>
+          </div>
           
           <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 mb-12">
             <h2 className="text-2xl font-medium text-slate-800 mb-6 text-center">How Can We Help You Today?</h2>
