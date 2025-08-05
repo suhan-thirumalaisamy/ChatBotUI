@@ -2,7 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { MessageCircle, X, Send, Trash2, Bot, User, Loader2 } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Trash2,
+  Bot,
+  User,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { invokeBedrockAgent } from "@/lib/queryClient";
@@ -20,14 +28,17 @@ export function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
-      text: "Hello! I'm your Utility Customer Support assistant. How can I assist you today?",
+      text: "Hello! I'm your Rebel Energy customer support assistant. How can I help you today?",
       isBot: true,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [sessionId, setSessionId] = useState(`session_${Date.now()}`);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -48,7 +59,7 @@ export function Chatbot() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await invokeBedrockAgent(message,sessionId);
+      const response = await invokeBedrockAgent(message, sessionId);
       return response.data;
     },
     onSuccess: (data: any) => {
@@ -56,49 +67,57 @@ export function Chatbot() {
         id: `bot_${Date.now()}`,
         text: data.agentResponse,
         isBot: true,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
     },
     onError: (error: any) => {
-      console.error('Chat error:', error);
-      
-      let errorMessage = "Sorry, I'm having trouble connecting right now. Please try again later.";
-      
+      console.error("Chat error:", error);
+
+      let errorMessage =
+        "Sorry, I'm having trouble connecting right now. Please try again later.";
+
       // Try to extract error message from the response
       if (error.message) {
         try {
-          const errorData = JSON.parse(error.message.split(': ')[1]);
+          const errorData = JSON.parse(error.message.split(": ")[1]);
           if (errorData.error) {
             errorMessage = errorData.error;
           }
         } catch {
           // Use the original error message if parsing fails
-          if (error.message.includes('Lambda endpoint not configured')) {
-            errorMessage = "Chat service is not configured. Please contact support.";
+          if (error.message.includes("Lambda endpoint not configured")) {
+            errorMessage =
+              "Chat service is not configured. Please contact support.";
           }
         }
       }
-      
+
       const errorBotMessage: Message = {
         id: `error_${Date.now()}`,
         text: errorMessage,
         isBot: true,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
-      setMessages(prev => [...prev, errorBotMessage]);
-      
+      setMessages((prev) => [...prev, errorBotMessage]);
+
       toast({
         title: "Connection Error",
         description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
-    }
+    },
   });
 
   const handleSendMessage = () => {
     const message = inputValue.trim();
-    
+
     if (!message) {
       toast({
         title: "Empty Message",
@@ -117,24 +136,32 @@ export function Chatbot() {
       id: `user_${Date.now()}`,
       text: message,
       isBot: false,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
-    
-    setMessages(prev => [...prev, userMessage]);
+
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-    
+
     // Send to Lambda
     sendMessageMutation.mutate(message);
   };
 
   const handleClearChat = () => {
-      setMessages([{
+    setMessages([
+      {
         id: "welcome",
-        text: "Hello! I'm your Utility Customer Support assistant. How can I assist you today?",
+        text: "Hello! I'm your Rebel Energy customer support assistant. How can I help you today?",
         isBot: true,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
-      setSessionId(`session_${Date.now()}`);
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
+    ]);
+    setSessionId(`session_${Date.now()}`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -153,13 +180,22 @@ export function Chatbot() {
   return (
     <>
       {/* Chat Button */}
-      <Button
+      {/* <Button
         onClick={toggleChat}
         className={cn(
           "fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-1000 z-50",
-          "bg-blue-600 hover:bg-blue-700 text-white",
-          //!isOpen && "animate-pulse"
+          "text-white"
         )}
+        style={{ 
+          backgroundColor: '#ff3c5a',
+          borderColor: '#ff3c5a'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#c55a68';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#ff3c5a';
+        }}
         size="icon"
       >
         {isOpen ? (
@@ -167,15 +203,37 @@ export function Chatbot() {
         ) : (
           <MessageCircle className="h-6 w-6" />
         )}
-      </Button>
+      </Button> */}
+      {!isOpen && (
+        <Button
+          onClick={toggleChat}
+          className={cn(
+            "fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-1000 z-50",
+            "text-white"
+          )}
+          style={{
+            backgroundColor: "#ff3c5a",
+            borderColor: "#ff3c5a",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#c55a68";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "#ff3c5a";
+          }}
+          size="icon"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </Button>
+      )}
 
       {/* Chat Interface Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-end justify-end p-4"
           onClick={toggleChat}
         >
-          <Card 
+          <Card
             className={cn(
               "w-full max-w-md h-96 md:h-[32rem] flex flex-col",
               "bg-white rounded-t-2xl md:rounded-2xl shadow-2xl",
@@ -185,21 +243,34 @@ export function Chatbot() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50 rounded-t-2xl md:rounded-t-2xl">
+            <div
+              className="flex items-center justify-between p-4 border-b rounded-t-2xl md:rounded-t-2xl"
+              style={{
+                backgroundColor: "#ff3c5a",
+                borderColor: "#c55a68",
+              }}
+            >
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Bot className="h-4 w-4 text-white" />
+                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                  <div
+                    className="text-xs font-bold"
+                    style={{ color: "#ff3c5a" }}
+                  >
+                    R
+                  </div>
                 </div>
                 <div>
-                  <h3 className="font-medium text-slate-800">Utility Support</h3>
-                  <p className="text-xs text-slate-500">Online</p>
+                  <h3 className="font-medium text-white">
+                    Rebel Energy Live Chat
+                  </h3>
+                  <p className="text-xs text-pink-100">How can we help?</p>
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleClearChat}
-                className="text-slate-400 hover:text-slate-600 h-8 w-8"
+                className="text-pink-100 hover:text-white hover:bg-pink-600 h-8 w-8"
                 title="Clear Chat"
               >
                 <Trash2 className="h-4 w-4" />
@@ -207,7 +278,10 @@ export function Chatbot() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-4"
+              style={{ backgroundColor: "#fef7f7" }}
+            >
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -217,36 +291,46 @@ export function Chatbot() {
                   )}
                 >
                   {message.isBot && (
-                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <Bot className="h-3 w-3 text-white" />
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                      style={{ backgroundColor: "#ff3c5a" }}
+                    >
+                      <div className="text-xs font-bold text-white">R</div>
                     </div>
                   )}
-                  
+
                   <div
                     className={cn(
                       "rounded-lg px-3 py-2 max-w-xs",
-                      message.isBot
-                        ? "bg-slate-100"
-                        : "bg-blue-600"
+                      message.isBot ? "bg-white border" : ""
                     )}
+                    style={
+                      message.isBot
+                        ? { borderColor: "#f8d7da" }
+                        : { backgroundColor: "#ff3c5a" }
+                    }
                   >
-                    <p className={cn(
-                      "text-sm",
-                      message.isBot ? "text-slate-700" : "text-white"
-                    )}>
+                    <p
+                      className={cn(
+                        "text-sm",
+                        message.isBot ? "text-gray-700" : "text-white"
+                      )}
+                    >
                       {message.text}
                     </p>
-                    <span className={cn(
-                      "text-xs mt-1 block",
-                      message.isBot ? "text-slate-500" : "text-blue-100"
-                    )}>
+                    <span
+                      className={cn(
+                        "text-xs mt-1 block",
+                        message.isBot ? "text-gray-400" : "text-pink-100"
+                      )}
+                    >
                       {message.timestamp}
                     </span>
                   </div>
 
                   {!message.isBot && (
-                    <div className="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <User className="h-3 w-3 text-slate-600" />
+                    <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <User className="h-3 w-3 text-gray-600" />
                     </div>
                   )}
                 </div>
@@ -255,24 +339,48 @@ export function Chatbot() {
               {/* Loading Message */}
               {sendMessageMutation.isPending && (
                 <div className="flex items-start space-x-2">
-                  <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Bot className="h-3 w-3 text-white" />
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
+                    style={{ backgroundColor: "#ff3c5a" }}
+                  >
+                    <div className="text-xs font-bold text-white">R</div>
                   </div>
-                  <div className="bg-slate-100 rounded-lg px-3 py-2 max-w-xs">
+                  <div
+                    className="bg-white border rounded-lg px-3 py-2 max-w-xs"
+                    style={{ borderColor: "#f8d7da" }}
+                  >
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
-                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      <div
+                        className="w-2 h-2 rounded-full animate-bounce"
+                        style={{ backgroundColor: "#ff3c5a" }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 rounded-full animate-bounce"
+                        style={{
+                          backgroundColor: "#ff3c5a",
+                          animationDelay: "0.1s",
+                        }}
+                      ></div>
+                      <div
+                        className="w-2 h-2 rounded-full animate-bounce"
+                        style={{
+                          backgroundColor: "#ff3c5a",
+                          animationDelay: "0.2s",
+                        }}
+                      ></div>
                     </div>
                   </div>
                 </div>
               )}
-              
+
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-slate-200 bg-white rounded-b-2xl md:rounded-b-2xl">
+            <div
+              className="p-4 border-t bg-white rounded-b-2xl md:rounded-b-2xl"
+              style={{ borderColor: "#f8d7da" }}
+            >
               <div className="flex items-end space-x-2">
                 <div className="flex-1">
                   <Textarea
@@ -280,21 +388,48 @@ export function Chatbot() {
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type your message..."
-                    className="resize-none min-h-[2.5rem] max-h-20 text-sm"
+                    placeholder="Type a message"
+                    className="resize-none min-h-[2.5rem] max-h-20 text-sm border-2 focus:border-2"
+                    style={{
+                      // borderColor: "#f8d7da",
+                      //focusBorderColor: '#ff3c5a'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = "#ff3c5a";
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = "#f8d7da";
+                    }}
                     rows={1}
                   />
                 </div>
                 <Button
-                  onClick={handleSendMessage}
-                  disabled={sendMessageMutation.isPending || !inputValue.trim()}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 min-w-[2.5rem] h-10"
+                  onClick={inputValue.trim() ? handleSendMessage : toggleChat}
+                  disabled={sendMessageMutation.isPending}
+                  className="text-white min-w-[2.5rem] h-10"
+                  style={{
+                    backgroundColor: sendMessageMutation.isPending
+                      ? "#d1d5db"
+                      : "#ff3c5a",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!sendMessageMutation.isPending) {
+                      e.currentTarget.style.backgroundColor = "#c55a68";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!sendMessageMutation.isPending) {
+                      e.currentTarget.style.backgroundColor = "#ff3c5a";
+                    }
+                  }}
                   size="icon"
                 >
                   {sendMessageMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
+                  ) : inputValue.trim() ? (
                     <Send className="h-4 w-4" />
+                  ) : (
+                    <X className="h-4 w-4" />
                   )}
                 </Button>
               </div>
