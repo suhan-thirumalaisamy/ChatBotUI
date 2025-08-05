@@ -1,6 +1,6 @@
 import { Chatbot } from "@/components/chatbot";
 import { UserMenu } from "@/components/UserMenu";
-import { Zap, Droplets, Flame, HelpCircle, Phone, Clock } from "lucide-react";
+// import { Zap, Droplets, Flame, HelpCircle, Phone, Clock } from "lucide-react";
 
 export default function Home() {
   return (
