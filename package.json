@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@aws-amplify/ui-react": "^6.11.2",
+    "@aws-sdk/client-lex-runtime-v2": "^3.859.0",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@neondatabase/serverless": "^0.10.4",
