@@ -2,6 +2,107 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { LexRuntimeV2Client, RecognizeTextCommand, RecognizeUtteranceCommand } from "@aws-sdk/client-lex-runtime-v2";
 import { fetchAuthSession } from 'aws-amplify/auth';
 
+async function decodeLexResponse(encodedResponse: string): Promise<any> {
+  try {
+    // Decode base64
+    const binaryString = atob(encodedResponse);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Decompress using gzip (if compressed)
+    const decompressed = await decompressGzip(bytes);
+    
+    // Convert to string
+    const decoder = new TextDecoder('utf-8');
+    const result = decoder.decode(decompressed);
+    
+    return result;
+  } catch (error) {
+    console.error('Error decoding Lex response:', error);
+    throw new Error('Failed to decode response');
+  }
+}
+
+// Gzip decompression using CompressionStream API (modern browsers)
+async function decompressGzip(compressedData: Uint8Array): Promise<Uint8Array> {
+  try {
+    // Create a readable stream from the compressed data
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(compressedData);
+        controller.close();
+      }
+    });
+    
+    // Create decompression stream
+    const decompressionStream = new DecompressionStream('gzip');
+    const decompressedStream = stream.pipeThrough(decompressionStream);
+    
+    // Read the decompressed data
+    const reader = decompressedStream.getReader();
+    const chunks: Uint8Array[] = [];
+    
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+    
+    // Combine chunks
+    const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    
+    for (const chunk of chunks) {
+      result.set(chunk, offset);
+      offset += chunk.length;
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Gzip decompression failed:', error);
+    throw error;
+  }
+}
+
+// Alternative: Manual gzip decompression (fallback for older browsers)
+function decompressGzipManual(data: Uint8Array): Uint8Array {
+  // This is a simplified implementation
+  // For production, consider using a library like pako
+  
+  // Check gzip magic number
+  if (data[0] !== 0x1f || data[1] !== 0x8b) {
+    throw new Error('Not a valid gzip file');
+  }
+  
+  // Skip gzip header (simplified)
+  let offset = 10;
+  
+  // Skip extra fields, filename, comment if present
+  const flags = data[3];
+  if (flags & 0x04) { // FEXTRA
+    const xlen = data[offset] | (data[offset + 1] << 8);
+    offset += 2 + xlen;
+  }
+  if (flags & 0x08) { // FNAME
+    while (data[offset++] !== 0);
+  }
+  if (flags & 0x10) { // FCOMMENT
+    while (data[offset++] !== 0);
+  }
+  if (flags & 0x02) { // FHCRC
+    offset += 2;
+  }
+  
+  // For a complete implementation, you'd need to implement DEFLATE decompression
+  // This is complex, so I recommend using the Compression Streams API above
+  // or a library like pako for older browser support
+  
+  throw new Error('Manual gzip decompression not fully implemented. Use modern browser with CompressionStream support or pako library.');
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -29,22 +130,6 @@ const getLexClient = async () => {
   }
 };
 
-// Usage
-
-
-// const credentialsProvider = fromCognitoIdentityPool({
-//   client: new CognitoIdentityClient({ region: import.meta.env.VITE_AWS_REGION }),
-//   identityPoolId: import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID,
-// });
-// Initialize Lex Runtime V2 Client
-// const lexClient = new LexRuntimeV2Client({
-//   region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
-//   credentials: credentialsProvider,
-//   // credentials: {
-//   //   accessKeyId: import.meta.env.VITE_AWS_ACCESS_KEY_ID || '',
-//   //   secretAccessKey: import.meta.env.VITE_AWS_SECRET_ACCESS_KEY || '',
-//   // }
-// });
 
 export async function sendTextToLex(
   message: string = "",
@@ -90,14 +175,18 @@ export async function sendVoiceToLex(
       botAliasId: import.meta.env.VITE_LEX_BOT_ALIAS_ID || 'TSTALIASID',
       localeId: import.meta.env.VITE_LEX_LOCALE_ID || 'en_US',
       sessionId: sessionId,
-      requestContentType: 'audio/webm;codecs=opus',
+      requestContentType: 'audio/x-l16; sample-rate=16000; channel-count=1',
+      responseContentType: 'text/plain;charset=utf-8',
       inputStream: audioUint8Array,
     });
 
     const response = await lexClient.send(command);
-    
+    console.log('Lex response:', response);
+    response.inputTranscript = await decodeLexResponse(response.inputTranscript || "");
+    response.messages = await decodeLexResponse(response.messages || "");
+    let messages = JSON.parse(response.messages || "[]");
     // Extract the response message from Lex
-    const botMessage = response.messages || "I'm sorry, I didn't understand that.";
+    const botMessage = messages?.[0]?.content || "I'm sorry, I didn't understand that.";
     
     return {
       agentResponse: botMessage,

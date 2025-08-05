@@ -25,6 +25,87 @@ interface Message {
   timestamp: string;
 }
 
+async function convertWebMToWav(webmBlob: Blob): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const audioContext = new (window.AudioContext ||
+      (window as any).webkitAudioContext)({
+      sampleRate: 16000, // Set sample rate to 16kHz as required by Lex
+    });
+
+    const fileReader = new FileReader();
+
+    fileReader.onload = async () => {
+      try {
+        const arrayBuffer = fileReader.result as ArrayBuffer;
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        // Convert to mono if stereo
+        const channelData =
+          audioBuffer.numberOfChannels > 1
+            ? audioBuffer.getChannelData(0)
+            : audioBuffer.getChannelData(0);
+
+        // Convert float32 to int16 (PCM 16-bit)
+        const int16Array = new Int16Array(channelData.length);
+        for (let i = 0; i < channelData.length; i++) {
+          const sample = Math.max(-1, Math.min(1, channelData[i]));
+          int16Array[i] = sample * 0x7fff;
+        }
+
+        // Create WAV file
+        const wavBuffer = createWavBuffer(int16Array, 16000, 1);
+        const wavBlob = new Blob([wavBuffer], { type: "audio/wav" });
+
+        resolve(wavBlob);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    fileReader.onerror = () => reject(new Error("Failed to read audio file"));
+    fileReader.readAsArrayBuffer(webmBlob);
+  });
+}
+
+// Create WAV file buffer
+function createWavBuffer(
+  samples: Int16Array,
+  sampleRate: number,
+  numChannels: number
+): ArrayBuffer {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+
+  // WAV header
+  const writeString = (offset: number, string: string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM format
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * numChannels * 2, true);
+  view.setUint16(32, numChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, "data");
+  view.setUint32(40, samples.length * 2, true);
+
+  // Write PCM samples
+  const offset = 44;
+  for (let i = 0; i < samples.length; i++) {
+    view.setInt16(offset + i * 2, samples[i], true);
+  }
+
+  return buffer;
+}
+
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -41,7 +122,9 @@ export function Chatbot() {
   const [inputValue, setInputValue] = useState("");
   const [sessionId, setSessionId] = useState(`session_${Date.now()}`);
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -142,10 +225,11 @@ export function Chatbot() {
     },
     onError: (error: any) => {
       console.error("Voice message error:", error);
-      
+
       const errorBotMessage: Message = {
         id: `error_${Date.now()}`,
-        text: error.message || "Failed to process voice message. Please try again.",
+        text:
+          error.message || "Failed to process voice message. Please try again.",
         isBot: true,
         timestamp: new Date().toLocaleTimeString([], {
           hour: "2-digit",
@@ -198,35 +282,61 @@ export function Chatbot() {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+      // let mimeType = "audio/ogg;codecs=opus";
+      // if (!MediaRecorder.isTypeSupported(mimeType)) {
+      //   mimeType = "audio/wav";
+      //   if (!MediaRecorder.isTypeSupported(mimeType)) {
+      //     mimeType = ""; // Let browser choose
+      //   }
+      // }
+      // console.log("Using MIME type:", mimeType);
+      let mimeType = "audio/webm;codecs=opus";
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 16000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
       });
-      
+      const recorder = new MediaRecorder(stream, {
+        mimeType,
+      });
+
       const audioChunks: BlobPart[] = [];
-      
+
       recorder.ondataavailable = (event) => {
         audioChunks.push(event.data);
       };
-      
-      recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' });
-        sendVoiceMessageMutation.mutate(audioBlob);
-        
+
+      recorder.onstop = async() => {
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
+        try {
+          // Convert WebM to WAV
+          const wavBlob = await convertWebMToWav(audioBlob);
+
+          // Send converted audio to Lex
+          sendVoiceMessageMutation.mutate(wavBlob);
+        } catch (error) {
+          console.error("Error converting audio:", error);
+          // Handle conversion error
+        }
+        // sendVoiceMessageMutation.mutate(audioBlob);
+
         // Stop all tracks to release microphone
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
-      
+
       recorder.start();
       setMediaRecorder(recorder);
       setIsRecording(true);
-      
+
       toast({
         title: "Recording Started",
         description: "Speak your message now. Click the mic again to stop.",
       });
     } catch (error) {
-      console.error('Error starting recording:', error);
+      console.error("Error starting recording:", error);
       toast({
         title: "Microphone Error",
         description: "Unable to access microphone. Please check permissions.",
@@ -236,11 +346,11 @@ export function Chatbot() {
   };
 
   const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop();
       setIsRecording(false);
       setMediaRecorder(null);
-      
+
       toast({
         title: "Recording Stopped",
         description: "Processing your voice message...",
@@ -274,7 +384,10 @@ export function Chatbot() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
+      if (
+        !sendMessageMutation.isPending &&
+        !sendVoiceMessageMutation.isPending
+      ) {
         handleSendMessage();
       }
     }
@@ -444,7 +557,8 @@ export function Chatbot() {
               ))}
 
               {/* Loading Message */}
-              {(sendMessageMutation.isPending || sendVoiceMessageMutation.isPending) && (
+              {(sendMessageMutation.isPending ||
+                sendVoiceMessageMutation.isPending) && (
                 <div className="flex items-start space-x-2">
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
@@ -497,10 +611,12 @@ export function Chatbot() {
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message"
                     className="resize-none min-h-[2.5rem] max-h-20 text-sm border-2 focus:border-2"
-                    style={{
-                      // borderColor: "#f8d7da",
-                      //focusBorderColor: '#ff3c5a'
-                    }}
+                    style={
+                      {
+                        // borderColor: "#f8d7da",
+                        //focusBorderColor: '#ff3c5a'
+                      }
+                    }
                     onFocus={(e) => {
                       e.target.style.borderColor = "#ff3c5a";
                     }}
@@ -512,26 +628,39 @@ export function Chatbot() {
                 </div>
                 <Button
                   onClick={handleVoiceToggle}
-                  disabled={sendMessageMutation.isPending || sendVoiceMessageMutation.isPending}
+                  disabled={
+                    sendMessageMutation.isPending ||
+                    sendVoiceMessageMutation.isPending
+                  }
                   className={cn(
                     "text-white min-w-[2.5rem] h-10",
                     isRecording ? "animate-pulse" : ""
                   )}
                   style={{
-                    backgroundColor: isRecording 
-                      ? "#dc2626" 
-                      : (sendMessageMutation.isPending || sendVoiceMessageMutation.isPending)
-                        ? "#d1d5db"
-                        : "#ff3c5a",
+                    backgroundColor: isRecording
+                      ? "#dc2626"
+                      : sendMessageMutation.isPending ||
+                        sendVoiceMessageMutation.isPending
+                      ? "#d1d5db"
+                      : "#ff3c5a",
                   }}
                   onMouseEnter={(e) => {
-                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending && !isRecording) {
+                    if (
+                      !sendMessageMutation.isPending &&
+                      !sendVoiceMessageMutation.isPending &&
+                      !isRecording
+                    ) {
                       e.currentTarget.style.backgroundColor = "#c55a68";
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
-                      e.currentTarget.style.backgroundColor = isRecording ? "#dc2626" : "#ff3c5a";
+                    if (
+                      !sendMessageMutation.isPending &&
+                      !sendVoiceMessageMutation.isPending
+                    ) {
+                      e.currentTarget.style.backgroundColor = isRecording
+                        ? "#dc2626"
+                        : "#ff3c5a";
                     }
                   }}
                   size="icon"
@@ -545,7 +674,10 @@ export function Chatbot() {
                 </Button>
                 <Button
                   onClick={inputValue.trim() ? handleSendMessage : toggleChat}
-                  disabled={sendMessageMutation.isPending || sendVoiceMessageMutation.isPending}
+                  disabled={
+                    sendMessageMutation.isPending ||
+                    sendVoiceMessageMutation.isPending
+                  }
                   className="text-white min-w-[2.5rem] h-10"
                   style={{
                     backgroundColor: sendMessageMutation.isPending
@@ -553,18 +685,25 @@ export function Chatbot() {
                       : "#ff3c5a",
                   }}
                   onMouseEnter={(e) => {
-                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
+                    if (
+                      !sendMessageMutation.isPending &&
+                      !sendVoiceMessageMutation.isPending
+                    ) {
                       e.currentTarget.style.backgroundColor = "#c55a68";
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
+                    if (
+                      !sendMessageMutation.isPending &&
+                      !sendVoiceMessageMutation.isPending
+                    ) {
                       e.currentTarget.style.backgroundColor = "#ff3c5a";
                     }
                   }}
                   size="icon"
                 >
-                  {(sendMessageMutation.isPending || sendVoiceMessageMutation.isPending) ? (
+                  {sendMessageMutation.isPending ||
+                  sendVoiceMessageMutation.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : inputValue.trim() ? (
                     <Send className="h-4 w-4" />
