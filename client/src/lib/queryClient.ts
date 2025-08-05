@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { LexRuntimeV2Client, RecognizeTextCommand, RecognizeUtteranceCommand } from "@aws-sdk/client-lex-runtime-v2";
+import { fetchAuthSession } from 'aws-amplify/auth';
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -8,20 +9,49 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Initialize Lex Runtime V2 Client
-const lexClient = new LexRuntimeV2Client({
-  region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: import.meta.env.VITE_AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: import.meta.env.VITE_AWS_SECRET_ACCESS_KEY || '',
+let lexClient: LexRuntimeV2Client;
+
+const getLexClient = async () => {
+  try {
+    if(lexClient) {
+      return lexClient;
+    }
+    const session = await fetchAuthSession();
+    
+    lexClient =  new LexRuntimeV2Client({
+      region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
+      credentials: session.credentials,
+    });
+    return lexClient;
+  } catch (error) {
+    console.error('Error creating Lex client:', error);
+    throw error;
   }
-});
+};
+
+// Usage
+
+
+// const credentialsProvider = fromCognitoIdentityPool({
+//   client: new CognitoIdentityClient({ region: import.meta.env.VITE_AWS_REGION }),
+//   identityPoolId: import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID,
+// });
+// Initialize Lex Runtime V2 Client
+// const lexClient = new LexRuntimeV2Client({
+//   region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
+//   credentials: credentialsProvider,
+//   // credentials: {
+//   //   accessKeyId: import.meta.env.VITE_AWS_ACCESS_KEY_ID || '',
+//   //   secretAccessKey: import.meta.env.VITE_AWS_SECRET_ACCESS_KEY || '',
+//   // }
+// });
 
 export async function sendTextToLex(
   message: string = "",
   sessionId: string = "demo-session-001"
 ) {
   try {
+    const lexClient = await getLexClient();
     const command = new RecognizeTextCommand({
       botId: import.meta.env.VITE_LEX_BOT_ID,
       botAliasId: import.meta.env.VITE_LEX_BOT_ALIAS_ID || 'TSTALIASID',
@@ -51,6 +81,7 @@ export async function sendVoiceToLex(
   sessionId: string = "demo-session-001"
 ) {
   try {
+    const lexClient = await getLexClient();
     const audioBuffer = await audioBlob.arrayBuffer();
     const audioUint8Array = new Uint8Array(audioBuffer);
 

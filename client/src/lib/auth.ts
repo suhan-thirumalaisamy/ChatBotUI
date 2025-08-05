@@ -10,6 +10,7 @@ const amplifyConfig = {
       userPoolClientId: import.meta.env.VITE_COGNITO_USER_POOL_CLIENT_ID || 'your-client-id',
       region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
       signUpVerificationMethod: 'code' as const,
+      identityPoolId: import.meta.env.VITE_COGNITO_IDENTITY_POOL_ID
     }
   }
 };
