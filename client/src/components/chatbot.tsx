@@ -10,10 +10,12 @@ import {
   Bot,
   User,
   Loader2,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
-import { invokeBedrockAgent } from "@/lib/queryClient";
+import { sendTextToLex, sendVoiceToLex } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 interface Message {
@@ -38,6 +40,8 @@ export function Chatbot() {
   ]);
   const [inputValue, setInputValue] = useState("");
   const [sessionId, setSessionId] = useState(`session_${Date.now()}`);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -59,8 +63,8 @@ export function Chatbot() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await invokeBedrockAgent(message, sessionId);
-      return response.data;
+      const response = await sendTextToLex(message, sessionId);
+      return response;
     },
     onSuccess: (data: any) => {
       const botMessage: Message = {
@@ -82,18 +86,7 @@ export function Chatbot() {
 
       // Try to extract error message from the response
       if (error.message) {
-        try {
-          const errorData = JSON.parse(error.message.split(": ")[1]);
-          if (errorData.error) {
-            errorMessage = errorData.error;
-          }
-        } catch {
-          // Use the original error message if parsing fails
-          if (error.message.includes("Lambda endpoint not configured")) {
-            errorMessage =
-              "Chat service is not configured. Please contact support.";
-          }
-        }
+        errorMessage = error.message;
       }
 
       const errorBotMessage: Message = {
@@ -110,6 +103,60 @@ export function Chatbot() {
       toast({
         title: "Connection Error",
         description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendVoiceMessageMutation = useMutation({
+    mutationFn: async (audioBlob: Blob) => {
+      const response = await sendVoiceToLex(audioBlob, sessionId);
+      return response;
+    },
+    onSuccess: (data: any) => {
+      // Add user's transcribed message if available
+      if (data.inputTranscript) {
+        const userMessage: Message = {
+          id: `user_voice_${Date.now()}`,
+          text: data.inputTranscript,
+          isBot: false,
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+        setMessages((prev) => [...prev, userMessage]);
+      }
+
+      // Add bot response
+      const botMessage: Message = {
+        id: `bot_${Date.now()}`,
+        text: data.agentResponse,
+        isBot: true,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    },
+    onError: (error: any) => {
+      console.error("Voice message error:", error);
+      
+      const errorBotMessage: Message = {
+        id: `error_${Date.now()}`,
+        text: error.message || "Failed to process voice message. Please try again.",
+        isBot: true,
+        timestamp: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      setMessages((prev) => [...prev, errorBotMessage]);
+
+      toast({
+        title: "Voice Message Error",
+        description: "Failed to process voice message. Please try again.",
         variant: "destructive",
       });
     },
@@ -145,8 +192,68 @@ export function Chatbot() {
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    // Send to Lambda
+    // Send to Lex
     sendMessageMutation.mutate(message);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+      
+      const audioChunks: BlobPart[] = [];
+      
+      recorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+      
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm;codecs=opus' });
+        sendVoiceMessageMutation.mutate(audioBlob);
+        
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      
+      toast({
+        title: "Recording Started",
+        description: "Speak your message now. Click the mic again to stop.",
+      });
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        title: "Microphone Error",
+        description: "Unable to access microphone. Please check permissions.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+      
+      toast({
+        title: "Recording Stopped",
+        description: "Processing your voice message...",
+      });
+    }
+  };
+
+  const handleVoiceToggle = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   };
 
   const handleClearChat = () => {
@@ -167,7 +274,7 @@ export function Chatbot() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (!sendMessageMutation.isPending) {
+      if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
         handleSendMessage();
       }
     }
@@ -337,7 +444,7 @@ export function Chatbot() {
               ))}
 
               {/* Loading Message */}
-              {sendMessageMutation.isPending && (
+              {(sendMessageMutation.isPending || sendVoiceMessageMutation.isPending) && (
                 <div className="flex items-start space-x-2">
                   <div
                     className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
@@ -404,8 +511,41 @@ export function Chatbot() {
                   />
                 </div>
                 <Button
+                  onClick={handleVoiceToggle}
+                  disabled={sendMessageMutation.isPending || sendVoiceMessageMutation.isPending}
+                  className={cn(
+                    "text-white min-w-[2.5rem] h-10",
+                    isRecording ? "animate-pulse" : ""
+                  )}
+                  style={{
+                    backgroundColor: isRecording 
+                      ? "#dc2626" 
+                      : (sendMessageMutation.isPending || sendVoiceMessageMutation.isPending)
+                        ? "#d1d5db"
+                        : "#ff3c5a",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending && !isRecording) {
+                      e.currentTarget.style.backgroundColor = "#c55a68";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
+                      e.currentTarget.style.backgroundColor = isRecording ? "#dc2626" : "#ff3c5a";
+                    }
+                  }}
+                  size="icon"
+                  title={isRecording ? "Stop recording" : "Start voice message"}
+                >
+                  {isRecording ? (
+                    <MicOff className="h-4 w-4" />
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button
                   onClick={inputValue.trim() ? handleSendMessage : toggleChat}
-                  disabled={sendMessageMutation.isPending}
+                  disabled={sendMessageMutation.isPending || sendVoiceMessageMutation.isPending}
                   className="text-white min-w-[2.5rem] h-10"
                   style={{
                     backgroundColor: sendMessageMutation.isPending
@@ -413,18 +553,18 @@ export function Chatbot() {
                       : "#ff3c5a",
                   }}
                   onMouseEnter={(e) => {
-                    if (!sendMessageMutation.isPending) {
+                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
                       e.currentTarget.style.backgroundColor = "#c55a68";
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!sendMessageMutation.isPending) {
+                    if (!sendMessageMutation.isPending && !sendVoiceMessageMutation.isPending) {
                       e.currentTarget.style.backgroundColor = "#ff3c5a";
                     }
                   }}
                   size="icon"
                 >
-                  {sendMessageMutation.isPending ? (
+                  {(sendMessageMutation.isPending || sendVoiceMessageMutation.isPending) ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : inputValue.trim() ? (
                     <Send className="h-4 w-4" />
