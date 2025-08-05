@@ -32,11 +32,11 @@ export function UserMenu() {
     .slice(0, 2);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu >
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarFallback className="bg-blue-100 text-blue-600">
+            <AvatarFallback className="bg-blue-100 text-blue-600" style={{ backgroundColor: '#ff3c5a', color: '#f8d7da'  }}>
               {initials}
             </AvatarFallback>
           </Avatar>

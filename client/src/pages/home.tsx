@@ -11,12 +11,13 @@ export default function Home() {
           <div className="flex justify-between items-center">
             {/* Logo and Brand */}
             <div className="flex items-center">
-              <div className="text-3xl font-bold" style={{ color: "#ff3c5a" }}>
+              {/* <div className="text-3xl font-bold" style={{ color: "#ff3c5a" }}>
                 Rebel
               </div>
               <div className="ml-1 text-sm" style={{ color: "#ff3c5a" }}>
                 energy
-              </div>
+              </div> */}
+              <img src="https://s3-eu-west-2.amazonaws.com/react-app-prod-distbucket-2pgqtbzo1c75/img/Rebel_Energy_Logo.svg" alt="logo" />
             </div>
 
             {/* Navigation */}
@@ -46,9 +47,10 @@ export default function Home() {
               <a href="#" className=" hover:text-gray-600">
                 Help
               </a>
-              <button className="bg-black text-white px-4 py-2 text-sm font-medium">
+              {/* <button className="bg-black text-white px-4 py-2 text-sm font-medium">
                 LOGIN
-              </button>
+              </button> */}
+              <UserMenu />
             </nav>
 
             {/* Mobile Menu */}
@@ -228,7 +230,7 @@ export default function Home() {
             {/* Brand */}
             <div>
               <div className="flex items-center mb-4">
-                <div
+                {/* <div
                   className="text-2xl font-bold"
                   style={{ color: "#ff3c5a" }}
                 >
@@ -236,7 +238,8 @@ export default function Home() {
                 </div>
                 <div className="ml-1 text-sm" style={{ color: "#ff3c5a" }}>
                   energy
-                </div>
+                </div> */}
+                <img src="https://s3-eu-west-2.amazonaws.com/react-app-prod-distbucket-2pgqtbzo1c75/img/Rebel_Energy_Logo.svg" alt="" />
               </div>
               <p className="text-gray-600 text-sm mb-4">
                 Rebel Energy is a company registered in England and Wales (No
@@ -249,16 +252,16 @@ export default function Home() {
                 Social
               </div>
               <div className="flex space-x-3">
-                <a href="#" className="text-gray-600 hover:">
+                <a href="#" className="text-gray-600 hover:text-gray-800">
                   📷
                 </a>
-                <a href="#" className="text-gray-600 hover:">
+                <a href="#" className="text-gray-600 hover:text-gray-800">
                   𝕏
                 </a>
-                <a href="#" className="text-gray-600 hover:">
+                <a href="#" className="text-gray-600 hover:text-gray-800">
                   f
                 </a>
-                <a href="#" className="text-gray-600 hover:">
+                <a href="#" className="text-gray-600 hover:text-gray-800">
                   in
                 </a>
               </div>
@@ -271,32 +274,32 @@ export default function Home() {
               </h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Home
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Mission
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Energy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Restoration
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Views
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     FAQ
                   </a>
                 </li>
@@ -310,27 +313,27 @@ export default function Home() {
               </h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Privacy Policy
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Terms and Conditions
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Complaints
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Reports and Policies
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Smart Export Guarantee
                   </a>
                 </li>
@@ -344,22 +347,22 @@ export default function Home() {
               </h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Moving Out
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Make a Payment
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Setup Direct Debit
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:">
+                  <a href="#" className="hover:text-gray-800">
                     Submit a Reading
                   </a>
                 </li>
