@@ -123,13 +123,14 @@ export default function Auth() {
   if (needsConfirmation) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md" style={{ backgroundColor: '#f8d7da'}}>
           <CardHeader className="text-center">
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Zap className="h-6 w-6 text-blue-600" />
+              {/* <Zap className="h-6 w-6 text-blue-600" /> */}
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAP1BMVEVHcEz/Clv/C1z/AFr/AFv/BFv/JGj/Blv/BFr/AVf/AFX/AE3/S3v/wM3/mLD/b5L+//7+2+H/Y4r/MW3/AFrLm4l5AAAAFXRSTlMATJXI/+oTpo0i/////////////8OBOylAAAAA/klEQVR4AWySAQJAIAxFkx+sAO5/VkvVBg/Aq22LUTS2BeBa25gfuh6KvjMvBrywz+EOH5yaZMQvYx0PgLz3RP6GkClzOIDCNE1zPPFlKYqT/GhZ13Xb18ziVaYdtFAMkiC9CGFjkpGn6FmACP5mjsKep+D+auG+9XGSOQuNsW8BLEgS1rRaoIhfmSMLrXFKoMAsm0wWWwH8lLmh8itsB4ngPkIkUA1xvquId5LD+S0zNaoIw7tRkbtMlEaZb6P0asliiaBb3ctyK2GS+84w9iXQXns91F8OYWZyXB/vFyq/XAnCIEP5obtGKNkTnXHALsXIeqRkXkT2F2HFyP4Au4kbEfvki2cAAAAASUVORK5CYII=" alt="logo" />
             </div>
             <CardTitle className="text-2xl">Confirm Your Email</CardTitle>
-            <CardDescription>
+            <CardDescription className='text-black-600'>
               We sent a confirmation code to your email address. Please enter it below.
             </CardDescription>
           </CardHeader>
@@ -160,7 +161,7 @@ export default function Auth() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading} style={{ backgroundColor: '#ff3c5a'}}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Confirm Email
               </Button>
@@ -171,7 +172,7 @@ export default function Auth() {
                   variant="link"
                   onClick={handleResendCode}
                   disabled={loading}
-                  className="text-sm"
+                  className="text-sm text-gray-600 hover:text-gray-800"
                 >
                   Didn't receive the code? Resend
                 </Button>

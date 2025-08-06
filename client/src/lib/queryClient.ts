@@ -183,6 +183,7 @@ export async function sendVoiceToLex(
     const response = await lexClient.send(command);
     console.log('Lex response:', response);
     response.inputTranscript = await decodeLexResponse(response.inputTranscript || "");
+    response.inputTranscript = response.inputTranscript?.replace(/^"+|"+$/g, '') || "";
     response.messages = await decodeLexResponse(response.messages || "");
     let messages = JSON.parse(response.messages || "[]");
     // Extract the response message from Lex
