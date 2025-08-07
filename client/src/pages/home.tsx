@@ -29,7 +29,7 @@ export default function Home() {
               >
                 Home
               </a>
-              <a href="#" className=" hover:text-gray-600">
+              {/* <a href="#" className=" hover:text-gray-600">
                 Mission
               </a>
               <a href="#" className=" hover:text-gray-600">
@@ -40,7 +40,7 @@ export default function Home() {
               </a>
               <a href="#" className=" hover:text-gray-600">
                 Views
-              </a>
+              </a> */}
               <a href="#" className=" hover:text-gray-600">
                 FAQ
               </a>
@@ -79,7 +79,7 @@ export default function Home() {
           </div>
 
           {/* Main Messages */}
-          <div className="text-center mb-12 space-y-6">
+          <div className="text-left mb-12 space-y-6">
             <p className="text-lg max-w-3xl mx-auto leading-relaxed">
               Rebel Energy is ceasing to trade. Ofgem, the energy regulator, is
               appointing a new supplier for our customers.
