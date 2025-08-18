@@ -6,7 +6,7 @@ import { MainChat } from "@/components/MainChat";
 export default function Home() {
   const handleCallClick = () => {
     // Open dialer with the specified number
-    window.open('tel:91234567890', '_self');
+    window.open('tel:+18334263905', '_self');
   };
 
   return (
@@ -35,7 +35,7 @@ export default function Home() {
                 variant="ghost"
                 size="icon"
                 className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                title="Call Support: 91234567890"
+                title="Call Support: +18334263905"
               >
                 <Phone className="h-5 w-5" />
               </Button>
