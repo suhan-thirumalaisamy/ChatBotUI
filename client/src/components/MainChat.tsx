@@ -365,7 +365,7 @@ export function MainChat() {
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto w-full">
       {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      {/* <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
           <div
             className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
@@ -387,10 +387,10 @@ export function MainChat() {
           <RotateCcw className="h-4 w-4 mr-2" />
           New Chat
         </Button>
-      </div>
+      </div> */}
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6" style={{ marginBottom : "3rem" }}>
         {messages.length === 1 && (
           <div className="text-center py-12">
             <div
@@ -435,7 +435,7 @@ export function MainChat() {
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
                 style={{ backgroundColor: "#ff3c5a" }}
               >
-                R
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAP1BMVEVHcEz/Clv/C1z/AFr/AFv/BFv/JGj/Blv/BFr/AVf/AFX/AE3/S3v/wM3/mLD/b5L+//7+2+H/Y4r/MW3/AFrLm4l5AAAAFXRSTlMATJXI/+oTpo0i/////////////8OBOylAAAAA/klEQVR4AWySAQJAIAxFkx+sAO5/VkvVBg/Aq22LUTS2BeBa25gfuh6KvjMvBrywz+EOH5yaZMQvYx0PgLz3RP6GkClzOIDCNE1zPPFlKYqT/GhZ13Xb18ziVaYdtFAMkiC9CGFjkpGn6FmACP5mjsKep+D+auG+9XGSOQuNsW8BLEgS1rRaoIhfmSMLrXFKoMAsm0wWWwH8lLmh8itsB4ngPkIkUA1xvquId5LD+S0zNaoIw7tRkbtMlEaZb6P0asliiaBb3ctyK2GS+84w9iXQXns91F8OYWZyXB/vFyq/XAnCIEP5obtGKNkTnXHALsXIeqRkXkT2F2HFyP4Au4kbEfvki2cAAAAASUVORK5CYII=" alt="R" />
               </div>
             )}
 
@@ -509,7 +509,7 @@ export function MainChat() {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-t border-gray-200 p-4" style={{ position : "fixed" , left : 0, right : 0,bottom: 0, width: "100%", backgroundColor: "white" }}>
         <div className="flex items-end space-x-3 max-w-4xl mx-auto">
           <div className="flex-1 relative">
             <Textarea
@@ -522,6 +522,16 @@ export function MainChat() {
               rows={1}
             />
           </div>
+
+          <Button
+          variant="outline"
+          size="icon"
+          onClick={handleClearChat}
+          className="h-12 w-12"
+        >
+          <RotateCcw className="h-5 w-5" />
+          {/* New Chat */}
+        </Button>
           
           <Button
             onClick={handleVoiceToggle}
