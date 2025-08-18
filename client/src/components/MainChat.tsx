@@ -452,7 +452,7 @@ export function MainChat() {
                   : { backgroundColor: "#ff3c5a" }
               }
             >
-              <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+              <p className="text-sm whitespace-pre-wrap">{message?.text?.trim()}</p>
               <span
                 className={cn(
                   "text-xs mt-1 block",
@@ -478,7 +478,7 @@ export function MainChat() {
               className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
               style={{ backgroundColor: "#ff3c5a" }}
             >
-              R
+              <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAP1BMVEVHcEz/Clv/C1z/AFr/AFv/BFv/JGj/Blv/BFr/AVf/AFX/AE3/S3v/wM3/mLD/b5L+//7+2+H/Y4r/MW3/AFrLm4l5AAAAFXRSTlMATJXI/+oTpo0i/////////////8OBOylAAAAA/klEQVR4AWySAQJAIAxFkx+sAO5/VkvVBg/Aq22LUTS2BeBa25gfuh6KvjMvBrywz+EOH5yaZMQvYx0PgLz3RP6GkClzOIDCNE1zPPFlKYqT/GhZ13Xb18ziVaYdtFAMkiC9CGFjkpGn6FmACP5mjsKep+D+auG+9XGSOQuNsW8BLEgS1rRaoIhfmSMLrXFKoMAsm0wWWwH8lLmh8itsB4ngPkIkUA1xvquId5LD+S0zNaoIw7tRkbtMlEaZb6P0asliiaBb3ctyK2GS+84w9iXQXns91F8OYWZyXB/vFyq/XAnCIEP5obtGKNkTnXHALsXIeqRkXkT2F2HFyP4Au4kbEfvki2cAAAAASUVORK5CYII=" alt="R" />
             </div>
             <div className="bg-gray-100 px-4 py-3 rounded-2xl">
               <div className="flex space-x-1">
