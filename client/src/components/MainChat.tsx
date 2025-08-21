@@ -407,16 +407,16 @@ export function MainChat() {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
               <div className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 cursor-pointer transition-colors">
-                <p className="text-sm text-gray-700">Check my account balance</p>
+                <p className="text-sm text-gray-700">What payment methods do you offer?</p>
               </div>
               <div className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 cursor-pointer transition-colors">
-                <p className="text-sm text-gray-700">Report a power outage</p>
+                <p className="text-sm text-gray-700">Do you install solar panels?</p>
               </div>
               <div className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 cursor-pointer transition-colors">
-                <p className="text-sm text-gray-700">Set up a payment plan</p>
+                <p className="text-sm text-gray-700">Help with EV charger after installation</p>
               </div>
               <div className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 cursor-pointer transition-colors">
-                <p className="text-sm text-gray-700">Energy efficiency tips</p>
+                <p className="text-sm text-gray-700">What happens if my balance was in credit?</p>
               </div>
             </div>
           </div>
